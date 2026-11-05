@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#14171A" android:orientation="horizontal" android:padding="32dp">
+
+    <LinearLayout
+        android:layout_width="250dp" android:layout_height="match_parent"
+        android:gravity="center" android:orientation="vertical">
+        <ImageView
+            android:id="@+id/qr" android:layout_width="230dp" android:layout_height="230dp"
+            android:background="@drawable/bg_qr" android:padding="10dp"
+            android:contentDescription="QR code" />
+        <TextView
+            android:id="@+id/url" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" android:gravity="center"
+            android:textColor="#B0BEC5" android:textSize="13sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+        android:layout_marginStart="32dp" android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Photo Frame" android:textColor="#FFFFFF" android:textSize="30sp"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:lineSpacingExtra="4dp"
+            android:text="1. Connect your phone to the same Wi-Fi as this TV\n2. Scan the QR code with your phone camera\n3. Choose photos and tap Upload"
+            android:textColor="#CFD8DC" android:textSize="16sp" />
+        <TextView
+            android:id="@+id/status" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" android:textColor="#4FC3F7" android:textSize="16sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:orientation="horizontal">
+            <Button android:id="@+id/btnSlideshow" style="@null" android:background="@drawable/bg_button"
+                android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1"
+                android:layout_marginEnd="8dp" android:focusable="true" android:text="Slideshow"
+                android:textAllCaps="false" android:textColor="#FFFFFF" android:textSize="14sp" />
+            <Button android:id="@+id/btnInterval" style="@null" android:background="@drawable/bg_button"
+                android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1"
+                android:layout_marginEnd="8dp" android:focusable="true"
+                android:textAllCaps="false" android:textColor="#FFFFFF" android:textSize="14sp" />
+            <Button android:id="@+id/btnSaver" style="@null" android:background="@drawable/bg_button"
+                android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1"
+                android:layout_marginEnd="8dp" android:focusable="true" android:text="Set screensaver"
+                android:textAllCaps="false" android:textColor="#FFFFFF" android:textSize="14sp" />
+            <Button android:id="@+id/btnDelete" style="@null" android:background="@drawable/bg_button"
+                android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1"
+                android:focusable="true" android:text="Delete all"
+                android:textAllCaps="false" android:textColor="#FFFFFF" android:textSize="14sp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="20dp" android:text="Recent photos"
+            android:textColor="#90A4AE" android:textSize="14sp" />
+        <HorizontalScrollView
+            android:layout_width="match_parent" android:layout_height="104dp"
+            android:layout_marginTop="6dp" android:scrollbars="none">
+            <LinearLayout android:id="@+id/thumbs" android:layout_width="wrap_content"
+                android:layout_height="match_parent" android:orientation="horizontal" />
+        </HorizontalScrollView>
+    </LinearLayout>
+</LinearLayout>
