@@ -1,0 +1,47 @@
+name: Build Debug APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle 8.2
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.2"
+
+      - name: Build debug APK
+        run: |
+          if [ -f gradlew ] && [ -f gradle/wrapper/gradle-wrapper.jar ]; then
+            echo "Using Gradle wrapper"
+            chmod +x gradlew
+            ./gradlew assembleDebug --stacktrace
+          else
+            echo "No complete Gradle wrapper in repo - using Gradle 8.2"
+            gradle assembleDebug --stacktrace
+          fi
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoFrameTV-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
