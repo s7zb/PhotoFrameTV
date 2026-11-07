@@ -1,36 +1,53 @@
-# Photo Frame TV
+# PhotoFrame TV
 
-Android TV app (Xiaomi Mi TV Stick compatible): custom photo screensaver + built-in wireless upload server.
-No cloud, no accounts, no phone app. About 1 MB APK (only dependency: ZXing core for QR generation).
+Native Android TV photo frame. The TV shows a QR code and hosts a small web server;
+scan the code with your phone's normal camera, pick photos, and they appear on the TV.
+No cloud, no accounts, no phone app.
 
-## Build the APK
-Requires Android Studio (Hedgehog or newer) **or** JDK 17 + Android SDK (platform 34).
+- Targets the original Xiaomi Mi TV Stick (Android 9) and other Android TV devices (minSdk 21).
+- Photos are stored privately on the TV (`filesDir/photos`) and survive app restarts.
+- Phone and TV must be on the same Wi-Fi network.
 
-Android Studio: File > Open > this folder > Build > Build APK(s).
-Command line (with Gradle 8.2+ installed once, to create the wrapper):
+## Remote control
 
-    gradle wrapper --gradle-version 8.2
-    ./gradlew assembleRelease
-    # -> app/build/outputs/apk/release/app-release.apk   (debug-signed, directly installable)
+| Screen | Keys |
+|---|---|
+| Main menu | D-pad to move, OK to choose |
+| Library | OK on a photo = select/unselect; buttons at the bottom for Select all / Delete selected |
+| Main menu | Shuffle and Captions toggles (saved), Slide duration button |
+| Slideshow | Left/Right = previous/next, OK (or Play/Pause) = pause/resume, Up/Down = slide duration (3-60 s), **hold OK** (or Menu/Info) = settings list for Shuffle and Captions, Green/Yellow colour keys = toggle Shuffle/Captions if your remote has them, Back = exit |
 
-## Install on the Mi TV Stick
-1. TV: Settings > Device Preferences > About > tap "Build" 7 times; then Developer options > enable USB/Network debugging.
-2. Computer on same Wi-Fi:
+## Shuffle and captions
 
-       adb connect <TV-IP>:5555
-       adb install -r app-release.apk
+- **Shuffle** plays every photo once in random order, then reshuffles; the first photo of a new round is never the one just shown. Turning it on/off mid-show does not interrupt the current photo.
+- **Captions** show at the bottom of the screen. On the phone page tick "Add a caption to each photo" to type one per photo before uploading; photos without a typed caption show their file name instead.
+- Both settings are saved and also apply to the system screensaver.
 
-## Use
-1. Open "Photo Frame". A QR code is shown.
-2. Phone (same Wi-Fi): scan the QR -> browser upload page -> choose photos -> Upload.
-3. Photos appear on the TV as thumbnails; progress shows on the phone.
-4. Screensaver: Settings > Device Preferences > Screen saver > choose "Photo Frame"
-   (or: `adb shell settings put secure screensaver_components com.photoframe.tv/.PhotoDreamService`).
+## Photo formats
 
-Remote: D-pad navigates buttons. In Slideshow: Left/Right = prev/next, OK = pause, Down/Menu = delete photo, Back = exit.
+JPEG, PNG, WebP, GIF (first frame), BMP and HEIC/HEIF. HEIC is converted to JPEG by the phone's browser when it can
+(iPhones and recent Android Chrome). If the phone can't convert it, the original is sent and the TV tries to decode it
+natively (works only if the TV has an HEVC image decoder); otherwise the phone page shows a clear error.
 
-## How the upload works
-`PhotoServer.kt` is a small HTTP server (ports 8080-8099). QR = `http://<tv-ip>:<port>/?t=<secret>`.
-The page uploads each photo as a raw-body POST (`/api/upload`) so the browser shows true progress; the TV validates it is an
-image and stores it in the app's private storage. Uploads require the secret token from the QR code.
-The server runs while the app is open (stops when you exit it with Back).
+## System screensaver
+
+Settings > Device Preferences > Screen saver > choose "PhotoFrame TV".
+The main menu has a "Set up screensaver" button that opens the system screensaver settings.
+If your TV does not show third-party screensavers, enable it over adb (TV and PC on the same network):
+
+    adb connect <tv-ip>:5555
+    adb shell settings put secure screensaver_components com.s7zb.photoframetv/.PhotoDream
+
+The in-app slideshow always works regardless.
+
+## Upload server and background mode
+
+By default the server runs only while the app is open (low battery/RAM use). "Background server: On" starts a
+foreground service (with a notification) so uploads keep working while the app is not on screen. One shared
+server instance is used, so there are no port conflicts (ports 8080-8090 are tried).
+
+## Build
+
+GitHub Actions (`.github/workflows/build.yml`) builds `PhotoFrameTV.apk` on every push.
+Locally: JDK 17 + Android SDK 34 + Gradle 8.7, then `gradle assembleDebug`.
+The APK is signed with the committed `app/photoframe.keystore` so updates install over older versions.

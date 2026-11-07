@@ -4,33 +4,47 @@ plugins {
 }
 
 android {
-    namespace = "com.photoframe.tv"
+    namespace = "com.s7zb.photoframetv"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.photoframe.tv"
-        minSdk = 21
+        applicationId = "com.s7zb.photoframetv"
+        minSdk = 21          // Mi TV Stick (Android 9, API 28) and older Android TV boxes
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
+    }
+
+    // One fixed key committed to the repo so every build is signed identically
+    // and new APKs install over old ones as updates.
+    signingConfigs {
+        create("fixed") {
+            storeFile = file("photoframe.keystore")
+            storePassword = "photoframe"
+            keyAlias = "photoframe"
+            keyPassword = "photoframe"
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("fixed")
+        }
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Signed with the debug key so the release APK is directly installable via adb.
-            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("fixed")
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions { jvmTarget = "1.8" }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 }
 
 dependencies {
-    implementation("com.google.zxing:core:3.5.3") // QR encoding only (~550 KB)
+    implementation("com.google.zxing:core:3.5.3")
 }

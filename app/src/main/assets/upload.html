@@ -2,178 +2,257 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Send photos to TV</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Add photos to your TV</title>
 <style>
-  :root{--bg:#14171a;--card:#1f242a;--fg:#fff;--mut:#90a4ae;--acc:#4fc3f7;--ok:#66bb6a;--err:#ef5350}
-  *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--fg);
-       padding:16px 16px 120px;padding-top:max(16px,env(safe-area-inset-top))}
-  h1{font-size:22px;margin:4px 0}
-  .sub{color:var(--mut);margin:0 0 16px;font-size:14px}
-  .btn{display:block;width:100%;padding:16px;border-radius:12px;border:0;font-size:17px;font-weight:600;
-       text-align:center;margin-bottom:12px;cursor:pointer}
-  .pick{background:var(--card);color:var(--acc);border:2px dashed var(--acc)}
-  #send{background:var(--acc);color:#00293a}
-  #send:disabled{opacity:.4}
-  .err{background:#3b1f1f;color:#ffab91;padding:12px;border-radius:10px;margin-bottom:12px;font-size:14px}
-  .bar{height:8px;background:#2f363d;border-radius:4px;overflow:hidden}
-  .bar>div{height:100%;width:0;background:var(--acc);transition:width .15s}
-  #overall{margin:4px 0 16px}
-  #otext{font-size:14px;color:var(--mut);margin-top:6px}
-  #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
-  .card{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--card)}
-  .card img{width:100%;height:100%;object-fit:cover;display:block}
-  .card .bar{position:absolute;left:0;right:0;bottom:0;height:6px;border-radius:0}
-  .badge{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;
-         display:none;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff}
-  .done .badge{display:flex;background:var(--ok)} .fail .badge{display:flex;background:var(--err)}
-  .up img{opacity:.6}
-  .fail .msg{position:absolute;left:0;right:0;bottom:6px;background:#000a;color:#ffab91;font-size:10px;padding:2px 4px}
-  .msg{display:none} .fail .msg{display:block}
-  footer{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
-         background:linear-gradient(transparent,var(--bg) 30%)}
-  footer .btn{margin:0}
+  :root {
+    --bg: #14110f;
+    --panel: #201c19;
+    --line: #3a332e;
+    --text: #f4efe9;
+    --dim: #a89f96;
+    --accent: #ffb454;
+    --ok: #7fd18b;
+    --err: #ff7a6b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font-family: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+    line-height: 1.4;
+    padding: 20px 16px 48px;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 28px; margin: 8px 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--dim); margin: 0 0 22px; }
+  .pick {
+    display: block; width: 100%;
+    background: var(--accent); color: #2a1a05;
+    border: 0; border-radius: 14px;
+    font: inherit; font-size: 20px; font-weight: 700;
+    padding: 20px 16px; cursor: pointer;
+  }
+  .pick:active { transform: scale(0.99); }
+  .pick:focus-visible, .retry:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  input[type=file] { display: none; }
+  .opt { display: flex; gap: 10px; align-items: center; color: var(--dim); margin: 14px 2px 6px; font-size: 15px; }
+  .opt input { width: 20px; height: 20px; accent-color: var(--accent); }
+  .cap { width: 100%; margin-top: 6px; background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 15px; }
+  .cap:focus-visible { outline: 2px solid var(--accent); }
+  .go { display: none; width: 100%; margin-top: 14px; background: none; color: var(--accent); border: 2px solid var(--accent);
+    border-radius: 12px; font: inherit; font-size: 18px; font-weight: 700; padding: 14px; cursor: pointer; }
+  .tvcount { color: var(--dim); font-size: 15px; margin: 4px 2px 0; min-height: 22px; }
+  #summary { margin: 22px 2px 10px; font-weight: 600; min-height: 24px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li {
+    display: grid; grid-template-columns: 56px 1fr; gap: 12px;
+    padding: 10px 0; border-top: 1px solid var(--line);
+  }
+  .thumb { width: 56px; height: 56px; border-radius: 8px; background: var(--panel); object-fit: cover; }
+  .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta { color: var(--dim); font-size: 14px; display: flex; justify-content: space-between; gap: 8px; }
+  .bar { height: 6px; border-radius: 3px; background: var(--line); margin: 7px 0 5px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s linear; }
+  li.done .bar > i { background: var(--ok); }
+  li.fail .bar > i { background: var(--err); }
+  li.done .status { color: var(--ok); }
+  li.fail .status { color: var(--err); }
+  .retry {
+    background: none; color: var(--accent); border: 1px solid var(--accent);
+    border-radius: 8px; padding: 4px 12px; font: inherit; font-size: 14px; margin-top: 6px; cursor: pointer;
+  }
+  @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
 </style>
 </head>
 <body>
-<h1>📺 Send photos to TV</h1>
-<p class="sub">Photos on TV: <b id="count">–</b></p>
-<div id="tokerr" class="err" hidden>This page needs the link from the TV. Scan the QR code on your TV again.</div>
+  <h1>Add photos to your TV</h1>
+  <p class="sub">Pick as many as you like. They appear in the slideshow right after they finish.</p>
 
-<label class="btn pick" for="file">＋ Choose photos from gallery</label>
-<input id="file" type="file" accept="image/*" multiple hidden>
+  <button class="pick" id="pick" type="button">Choose photos</button>
+  <input id="file" type="file" accept="image/*" multiple>
 
-<div id="overall" hidden>
-  <div class="bar"><div id="obar"></div></div>
-  <div id="otext"></div>
-</div>
-<div id="grid"></div>
+  <label class="opt"><input type="checkbox" id="resize" checked> Shrink very large photos (faster, looks the same on a TV)</label>
+  <label class="opt"><input type="checkbox" id="capbox"> Add a caption to each photo (shown on the TV if captions are on)</label>
+  <button class="go" id="go" type="button">Upload photos</button>
+  <div class="tvcount" id="tvcount"></div>
 
-<footer><button id="send" class="btn" disabled>Upload to TV</button></footer>
+  <div id="summary"></div>
+  <ul id="list"></ul>
 
 <script>
-(function(){
-  var token = new URLSearchParams(location.search).get('t') || '';
-  var $ = function(id){return document.getElementById(id)};
-  var items = [], busy = false;
+(function () {
+  var fileInput = document.getElementById('file');
+  var list = document.getElementById('list');
+  var summary = document.getElementById('summary');
+  var tvcount = document.getElementById('tvcount');
+  var resizeBox = document.getElementById('resize');
+  var capBox = document.getElementById('capbox');
+  var goBtn = document.getElementById('go');
   var MAX_SIDE = 2560;
-  if(!token) $('tokerr').hidden = false;
 
-  function api(p){ return p + (p.indexOf('?')<0?'?':'&') + 't=' + encodeURIComponent(token); }
+  var queue = [], running = false, total = 0, done = 0, failed = 0;
 
-  function refreshCount(){
-    fetch(api('/api/count'),{cache:'no-store'}).then(function(r){return r.json()})
-      .then(function(j){ if(j && j.count!=null) $('count').textContent=j.count; }).catch(function(){});
-  }
-  refreshCount();
-
-  $('file').addEventListener('change', function(e){
-    Array.prototype.forEach.call(e.target.files, addItem);
-    e.target.value = '';
-    updateUi();
+  document.getElementById('pick').addEventListener('click', function () { fileInput.click(); });
+  fileInput.addEventListener('change', function () {
+    for (var i = 0; i < fileInput.files.length; i++) addFile(fileInput.files[i]);
+    fileInput.value = '';
+    if (capBox.checked) { goBtn.style.display = 'block'; goBtn.textContent = 'Upload ' + queue.length + (queue.length === 1 ? ' photo' : ' photos'); }
+    else run();
   });
-  $('send').addEventListener('click', run);
+  goBtn.addEventListener('click', function () { goBtn.style.display = 'none'; run(); });
 
-  function addItem(file){
-    var el = document.createElement('div'); el.className = 'card';
-    var img = document.createElement('img'); img.loading='lazy'; img.decoding='async';
-    img.src = URL.createObjectURL(file);
-    var bar = document.createElement('div'); bar.className='bar'; var fill=document.createElement('div'); bar.appendChild(fill);
-    var badge = document.createElement('div'); badge.className='badge'; badge.textContent='✓';
-    var msg = document.createElement('div'); msg.className='msg';
-    el.appendChild(img); el.appendChild(bar); el.appendChild(badge); el.appendChild(msg);
-    $('grid').appendChild(el);
-    items.push({file:file, el:el, fill:fill, badge:badge, msg:msg, state:'wait'});
+  function fmt(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1048576) return (n / 1024).toFixed(0) + ' KB';
+    return (n / 1048576).toFixed(1) + ' MB';
   }
 
-  function pending(){ return items.filter(function(i){return i.state==='wait'||i.state==='fail'}); }
-
-  function updateUi(){
-    var n = pending().length;
-    var failed = items.some(function(i){return i.state==='fail'});
-    $('send').disabled = busy || n===0;
-    $('send').textContent = busy ? 'Uploading…' : (n===0 ? 'Upload to TV' : (failed?'Retry / upload ':'Upload ')+n+' photo'+(n>1?'s':'')+' to TV');
+  function addFile(file) {
+    var li = document.createElement('li');
+    var img = document.createElement('img');
+    img.className = 'thumb';
+    img.alt = '';
+    try { img.src = URL.createObjectURL(file); } catch (e) {}
+    var box = document.createElement('div');
+    var name = document.createElement('div'); name.className = 'name'; name.textContent = file.name;
+    var bar = document.createElement('div'); bar.className = 'bar';
+    var fill = document.createElement('i'); bar.appendChild(fill);
+    var meta = document.createElement('div'); meta.className = 'meta';
+    var status = document.createElement('span'); status.className = 'status'; status.textContent = 'Waiting';
+    var size = document.createElement('span'); size.textContent = fmt(file.size);
+    meta.appendChild(status); meta.appendChild(size);
+    box.appendChild(name); box.appendChild(bar); box.appendChild(meta);
+    li.appendChild(img); li.appendChild(box);
+    list.insertBefore(li, list.firstChild);
+    var capInput = null;
+    if (capBox.checked) {
+      capInput = document.createElement('input');
+      capInput.type = 'text'; capInput.className = 'cap'; capInput.maxLength = 120;
+      capInput.placeholder = 'Caption (optional)';
+      box.insertBefore(capInput, box.children[1]);
+    }
+    var item = { file: file, li: li, fill: fill, status: status, size: size, box: box, cap: capInput };
+    total++;
+    queue.push(item);
+    updateSummary();
   }
 
-  function setState(it, st, text){
-    it.state = st;
-    it.el.className = 'card ' + st;
-    if(st==='done'){ it.fill.style.width='100%'; it.badge.textContent='✓'; }
-    if(st==='fail'){ it.badge.textContent='!'; it.msg.textContent = text||'Failed'; }
+  function updateSummary() {
+    if (!total) { summary.textContent = ''; return; }
+    var s = done + ' of ' + total + ' uploaded';
+    if (failed) s += ', ' + failed + ' failed';
+    summary.textContent = s;
   }
 
-  function loadImg(file){
-    return new Promise(function(res,rej){
-      var u = URL.createObjectURL(file), im = new Image();
-      im.onload = function(){ res({im:im,u:u}); };
-      im.onerror = function(){ URL.revokeObjectURL(u); rej(new Error('decode')); };
-      im.src = u;
+  function loadCount() {
+    var x = new XMLHttpRequest();
+    x.open('GET', '/count');
+    x.onload = function () {
+      try { var n = JSON.parse(x.responseText).count; tvcount.textContent = n + (n === 1 ? ' photo' : ' photos') + ' on the TV'; } catch (e) {}
+    };
+    x.send();
+  }
+
+  async function run() {
+    if (running) return;
+    running = true;
+    while (queue.length) { await upload(queue.shift()); }
+    running = false;
+    updateSummary();
+    loadCount();
+  }
+
+  function loadImage(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var im = new Image();
+      im.onload = function () { URL.revokeObjectURL(url); resolve(im); };
+      im.onerror = function () { URL.revokeObjectURL(url); reject(new Error('decode')); };
+      im.src = url;
     });
   }
 
-  // Downscale big photos in the browser (faster upload, bakes in EXIF rotation). Falls back to the original.
-  function prepare(file){
-    if(!/^image\/(jpeg|png|webp|heic|heif)/i.test(file.type||'image/jpeg')) return Promise.resolve({blob:file,name:file.name});
-    return loadImg(file).then(function(o){
-      var w=o.im.naturalWidth, h=o.im.naturalHeight, s=Math.min(1, MAX_SIDE/Math.max(w,h));
-      if(s===1 && file.size < 3*1024*1024){ URL.revokeObjectURL(o.u); return {blob:file,name:file.name}; }
-      var c=document.createElement('canvas'); c.width=Math.round(w*s); c.height=Math.round(h*s);
-      c.getContext('2d').drawImage(o.im,0,0,c.width,c.height);
-      URL.revokeObjectURL(o.u);
-      return new Promise(function(res){
-        c.toBlob(function(b){
-          c.width=c.height=0;
-          if(!b) return res({blob:file,name:file.name});
-          res({blob:b,name:(file.name||'photo').replace(/\.[^.]*$/,'')+'.jpg'});
-        },'image/jpeg',0.9);
-      });
-    }).catch(function(){ return {blob:file,name:file.name}; });
+  async function prepare(file) {
+    var orig = { blob: file, name: file.name };
+    var isHeic = /^image\/hei[cf]/i.test(file.type) || /\.(heic|heif)$/i.test(file.name);
+    // HEIC/HEIF is always converted to JPEG here when the phone's browser can decode it (the TV may not be able to).
+    if (!isHeic && (!resizeBox.checked || file.size < 1500000 || !/^image\/(jpeg|png|webp)$/.test(file.type))) return orig;
+    try {
+      var im = await loadImage(file);
+      var w = im.naturalWidth, h = im.naturalHeight;
+      var scale = Math.min(1, MAX_SIDE / Math.max(w, h));
+      if (scale >= 1 && !isHeic) return orig;
+      var c = document.createElement('canvas');
+      c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      var blob = await new Promise(function (r) { c.toBlob(r, 'image/jpeg', 0.9); });
+      if (!blob) return orig;
+      if (!isHeic && blob.size >= file.size) return orig;
+      return { blob: blob, name: file.name.replace(/\.[^.]+$/, '') + '.jpg', converted: isHeic };
+    } catch (e) {
+      if (isHeic) orig.heicRaw = true;
+      return orig;
+    }
   }
 
-  function send(it, p, onFrac){
-    return new Promise(function(res,rej){
+  function fail(it, msg) {
+    it.li.className = 'fail';
+    it.fill.style.width = '100%';
+    it.status.textContent = msg;
+    failed++;
+    var b = document.createElement('button');
+    b.className = 'retry'; b.type = 'button'; b.textContent = 'Try again';
+    b.addEventListener('click', function () {
+      b.remove();
+      failed--; it.li.className = ''; it.fill.style.width = '0';
+      it.status.textContent = 'Waiting';
+      queue.push(it); updateSummary(); run();
+    });
+    it.box.appendChild(b);
+    updateSummary();
+  }
+
+  function upload(it) {
+    return new Promise(async function (resolve) {
+      it.status.textContent = 'Preparing';
+      var p = await prepare(it.file);
+      it.size.textContent = fmt(p.blob.size);
+      it.status.textContent = p.heicRaw ? 'Sending HEIC as is (this phone cannot convert it)' : 'Uploading 0%';
       var x = new XMLHttpRequest();
-      x.open('POST', api('/api/upload?name='+encodeURIComponent(p.name||'photo.jpg')));
-      x.setRequestHeader('Content-Type','application/octet-stream');
-      x.upload.onprogress = function(e){ if(e.lengthComputable){ var f=e.loaded/e.total; it.fill.style.width=(f*100)+'%'; onFrac(f);} };
-      x.onload = function(){
-        if(x.status===200) return res();
-        var m='Upload failed'; try{ m=JSON.parse(x.responseText).error||m; }catch(_){}
-        rej(new Error(m));
+      var capText = it.cap ? it.cap.value.trim() : '';
+      if (it.cap) it.cap.disabled = true;
+      x.open('POST', '/upload?name=' + encodeURIComponent(p.name) + (capText ? '&caption=' + encodeURIComponent(capText) : ''));
+      x.setRequestHeader('Content-Type', p.blob.type || 'application/octet-stream');
+      x.timeout = 5 * 60 * 1000;
+      x.upload.onprogress = function (e) {
+        if (!e.lengthComputable) return;
+        var pct = Math.round(e.loaded / e.total * 100);
+        it.fill.style.width = pct + '%';
+        it.status.textContent = pct >= 100 ? 'Saving on TV' : 'Uploading ' + pct + '%';
       };
-      x.onerror = function(){ rej(new Error('Connection lost')); };
+      x.onload = function () {
+        var res = {};
+        try { res = JSON.parse(x.responseText); } catch (e) {}
+        if (x.status === 200 && res.ok) {
+          it.li.className = 'done';
+          it.fill.style.width = '100%';
+          it.status.textContent = p.converted ? 'On the TV (converted to JPEG)' : 'On the TV';
+          done++;
+          updateSummary();
+        } else {
+          fail(it, res.error || ('The TV returned error ' + x.status));
+        }
+        resolve();
+      };
+      x.onerror = function () { fail(it, 'Lost connection. Check that your phone is on the same Wi-Fi as the TV.'); resolve(); };
+      x.ontimeout = function () { fail(it, 'Timed out. Move closer to the router and try again.'); resolve(); };
       x.send(p.blob);
     });
   }
 
-  function run(){
-    if(busy) return;
-    var todo = pending(); if(!todo.length) return;
-    busy = true; updateUi();
-    $('overall').hidden = false;
-    var total = todo.length, done = 0, ok = 0;
-    function overall(frac){
-      $('obar').style.width = (((done+(frac||0))/total)*100)+'%';
-      $('otext').textContent = 'Uploading '+Math.min(done+1,total)+' of '+total+'…';
-    }
-    overall(0);
-    todo.reduce(function(chain,it){
-      return chain.then(function(){
-        setState(it,'up'); it.fill.style.width='0';
-        return prepare(it.file).then(function(p){ return send(it,p,overall); })
-          .then(function(){ setState(it,'done'); ok++; })
-          .catch(function(e){ setState(it,'fail',e.message); })
-          .then(function(){ done++; overall(0); });
-      });
-    }, Promise.resolve()).then(function(){
-      busy = false;
-      $('obar').style.width='100%';
-      var fail = total-ok;
-      $('otext').textContent = '✓ '+ok+' photo'+(ok===1?'':'s')+' sent to your TV'+(fail?' — '+fail+' failed (tap to retry)':'');
-      updateUi(); refreshCount();
-    });
-  }
+  loadCount();
 })();
 </script>
 </body>
