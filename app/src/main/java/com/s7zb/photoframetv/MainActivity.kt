@@ -12,6 +12,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -122,7 +123,7 @@ class MainActivity : Activity() {
         val right = LinearLayout(this)
         right.orientation = LinearLayout.VERTICAL
         right.gravity = Gravity.CENTER_VERTICAL
-        scroll.addView(right, ScrollView.LayoutParams(ScrollView.LayoutParams.MATCH_PARENT, ScrollView.LayoutParams.WRAP_CONTENT))
+        scroll.addView(right, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
 
         statusText = TextView(this)
         statusText.setTextColor(Color.WHITE)
